@@ -76,8 +76,6 @@ export default {
       type: 0,
       bank: '招商银行',
       moneyType:0,
-
-
     }
   }
 }
