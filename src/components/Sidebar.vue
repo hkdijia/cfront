@@ -84,19 +84,19 @@
                         title: '查询',
                         subs: [
                             {
-                                index: 'orderquery',
+                                index: 'orderQuery',
                                 title: '当日委托'
                             },
                             {
-                                index: 'tradequery',
+                                index: 'tradeQuery',
                                 title: '当日成交'
                             },
                             {
-                                index: 'hisorderquery',
+                                index: 'hisOrderQuery',
                                 title: '历史委托'
                             },
                             {
-                                index: 'histradequery',
+                                index: 'hisTradeQuery',
                                 title: '历史成交'
                             },
                         ]
@@ -119,7 +119,7 @@
                     },
                     {
                         icon: 'el-icon-setting',
-                        index: 'pwdsetting',
+                        index: 'pwdSetting',
                         title: '修改密码'
                     },
 
@@ -132,13 +132,33 @@
                 return this.$route.path.replace('/', '');
             }
         },
-        created() {
-            // 通过 Event Bus 进行组件间通信，来折叠侧边栏
-            this.$bus.on('collapse', msg => {
-                this.collapse = msg;
-                this.$bus.emit('collapse-content', msg);
-            });
+        // created() {
+        //     // 通过 Event Bus 进行组件间通信，来折叠侧边栏
+        //     this.$bus.on('collapse', msg => {
+        //         this.collapse = msg;
+        //         this.$bus.emit('collapse-content', msg);
+        //     });
+        // },
+
+
+        methods:{
+          collapseChange(msg){
+            this.collapse = msg;
+            this.$bus.emit("collapse-content",msg);
+          }
+        },
+        created(){
+            //订阅collapse消息
+            this.$bus.on("collapse",msg =>{
+            this.collapseChange(msg);
+          });
+        },
+        beforeDestroy(){
+          this.$bus.off("collapse",msg =>{
+            this.collapseChange(msg);
+          });
         }
+
     };
 </script>
 
