@@ -38,6 +38,13 @@ const routes = [
         meta: {requiredAuth: false}
       },
 
+      {
+        path: '/hisOrderQuery',
+        name: 'HisOrderQuery',
+        component: () => import('../views/HisOrderQuery.vue'),
+        meta: {requiredAuth: false}
+      },
+
     ]
   },
 
