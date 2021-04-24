@@ -45,6 +45,13 @@ const routes = [
         meta: {requiredAuth: false}
       },
 
+      {
+        path: '/buy',
+        name: 'Buy',
+        component: () => import('../views/Buy.vue'),
+        meta: {requiredAuth: false}
+      },
+
     ]
   },
 
