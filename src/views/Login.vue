@@ -1,33 +1,36 @@
 <template>
   <div class="login-wrap">
-    <el-form class="login-container">
+    <el-form class="login-container"
+      :model="ruleForm"
+             :rules="rules"
+             ref="ruleForm"
+    >
         <!--  头部信息     -->
         <h3 class="title">  用户登陆 </h3>
         <!--  输入框     -->
-        <el-form-item>
-          <el-input type="text" placeholder="账号"></el-input>
+        <el-form-item prop="uid">
+          <el-input v-model="ruleForm.uid" type="text" placeholder="账号"/>
         </el-form-item>
 
-        <el-form-item>
-          <el-input type="password" placeholder="密码"></el-input>
+        <el-form-item prop="password">
+          <el-input v-model="ruleForm.password" type="password" placeholder="密码"/>
         </el-form-item>
 
         <el-row>
           <el-col :span="12">
-            <el-form-item>
-              <el-row>
-                <el-input type="text" auto-complete="off" placeholder="验证码"/>
-              </el-row>
+            <el-form-item prop="captcha">
+                <el-input v-model="ruleForm.captcha" type="text" auto-complete="off"
+                          placeholder="验证码" @keyup.enter.native = "submitForm('ruleForm')"/>
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
-            <img />
+            <img :src="codeImg" @click="getCode()"/>
           </el-col>
         </el-row>
 
         <el-form-item>
-          <el-button type="primary" style="width:100%;">
+          <el-button type="primary" style="width:100%;" :loading="logining" @click="submitForm('ruleForm')">
             登录
           </el-button>
         </el-form-item>
@@ -38,8 +41,101 @@
 </template>
 
 <script>
+
+import {queryCaptcha,login} from '../api/loginApi'
+import encryptMD5 from 'js-md5'
+
 export default {
-  name: "Login"
+  name: "Login",
+  data(){
+    return{
+      //1.提交表单
+      ruleForm:{
+        uid:'',
+        password:'',
+        captcha:'',
+        captchaId:'',
+      },
+      //2.验证码图片
+      codeImg:'',
+      //3.限制规则
+      rules:{
+        uid:[{required:true, message:'请输入账号', trigger:'blur'}],
+        password:[{required:true, message:'请输入密码', trigger:'blur'}],
+        captcha:[{required:true, message:'请输入验证码', trigger:'blur'}],
+      },
+      //4.防止前端重复提交
+      logining:false,
+    }
+  },
+
+  // 加载立刻执行
+  created() {
+    if(Boolean(this.$route.query.msg)){
+      this.$message.info(this.$route.query.msg + "");
+    };
+
+    this.getCode();
+  },
+
+  methods:{
+    captchaCallback(code,msg,captchaData){
+        this.ruleForm.captchaId = captchaData.id;
+        this.codeImg = captchaData.imageBase64;
+    },
+
+    loginCallback(code,msg,acc){
+      if(code == 2){
+        // 登陆失败
+        this.$message.error(msg);
+        this.logining = false;
+        this.getCode();
+        return;
+      }else {
+        // 登陆成功
+        sessionStorage.setItem("uid", acc.uid);
+        sessionStorage.setItem("token",acc.token);
+        // 显示上次成功登陆时间
+        if(acc.lastLoginDate.length > 1){
+          this.$message.success("登陆成功, 上次登陆时间: " + acc.lastLoginDate +" " + acc.lastLoginTime);
+        }else {
+          this.$message.success("登陆成功");
+        };
+
+        // 跳转到主界面
+        setTimeout(() => {
+          this.logining = false;
+          this.$router.push({path : '/dashboard'});
+        }, 1000);
+
+      }
+    },
+
+    // common.js 网络交互 < -- login.js(业务逻辑) <-- Vue
+    // 验证码获取
+    getCode(){
+      queryCaptcha(this.captchaCallback);
+    },
+
+    // 提交表单
+    submitForm(formName){
+      this.$refs[formName].validate(valid => {
+        if(valid){
+          this.logining = true;
+          login({
+            uid : this.ruleForm.uid,
+            password : encryptMD5(this.ruleForm.password),
+            captcha : this.ruleForm.captcha,
+            captchaId : this.ruleForm.captchaId,
+          },this.loginCallback);
+        }else{
+          this.$message.error("用户名/密码/验证码不能为空");
+          this.logining = false;
+        }
+      })
+    }
+  }
+
 }
 </script>
 
