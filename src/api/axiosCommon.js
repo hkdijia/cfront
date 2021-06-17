@@ -38,24 +38,6 @@ export const reqRealEndAsync = (method, baseUrl, url, params, callback) =>{
 };
 
 
-// 通用公共方法(不包含回调)
-export const reqReal = (method, baseUrl, url, params) =>{
-    params.token = sessionStorage.getItem("token");
-
-    return axios({
-        timeout:5000,
-        baseURL:baseUrl,
-        method:method,
-        url:url,
-        headers:{
-            'Content-type':'application/x-www-form-urlencoded',
-        },
-        data:Qs.stringify(params),
-        traditional:true,
-    })
-};
-
-
 //通用公共方法(不包含回调)
 export const reqRealEnd = (method, baseUrl,
                            url, params) => {

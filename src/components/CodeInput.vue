@@ -15,36 +15,76 @@
 </template>
 
 <script>
+
+import {queryCodeName} from '../api/orderApi'
+
 export default {
+  // methods:{
+  //   /**
+  //    *
+  //    * @param queryString 输入框输入的值
+  //    * @param callback  回调函数
+  //    */
+  //   querySearchAsync(queryString, callback){
+  //     //  模拟值
+  //     let list = [
+  //       {code: '000001', name: '平安银行', value:'000001-平安银行'},
+  //       {code: '600000', name: '浦发银行', value:'600000-浦发银行'},
+  //     ];
+  //
+  //     // 通知自动提示框提示的内容
+  //     callback(list);
+  //   },
+  //
+  //   updateInput(item){
+  //     this.state = ('000000' + item.code).slice(-6);
+  //     this.$bus.emit('codeinput-selectd', item);
+  //   }
+  // }
+
   name: "CodeInput",
-  data(){
-    return{
-      state:'',
+  data() {
+    return {
+      state: '',
     }
   },
-
-  methods:{
-    /**
-     *
-     * @param queryString 输入框输入的值
-     * @param callback  回调函数
-     */
-    querySearchAsync(queryString, callback){
-      //  模拟值
-      let list = [
-        {code: '000001', name: '平安银行', value:'000001-平安银行'},
-        {code: '600000', name: '浦发银行', value:'600000-浦发银行'},
-      ];
-
-      // 通知自动提示框提示的内容
-      callback(list);
+  methods: {
+    //queryString 输入框的值 callback 回调函数
+    querySearchAsync(queryString, callback) {
+      //从后台服务查询数据
+      let list = [{}];
+      queryCodeName({
+        key: queryString
+      }).then(res =>{
+        if(res.data.code != 0){
+          this.$route.replace({
+            path: "login",
+            query: {
+              msg: result.message
+            }
+          });
+        }else {
+          let resData = res.data.data;
+          for(let i of resData){
+            i.value = ('000000' + i.code).slice(-6)
+                + '--' + i.name;
+          }
+          list = resData;
+          //通知自动提示框显示哪几项
+          callback(list);
+        }
+      });
     },
-
-    updateInput(item){
+    updateInput(item) {
+      // code[int]  000001
+      // this.state = item.code;  1
+      //  1  --> 0000001 --> 000001
       this.state = ('000000' + item.code).slice(-6);
-      this.$bus.emit('codeinput-selectd', item);
+
+      this.$bus.emit("codeinput-selected",item);
     }
   }
+
 }
 </script>
 

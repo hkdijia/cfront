@@ -21,11 +21,11 @@
       :cell-style="cellStyle"
       @sort-change="changeTableSort"
     >
-      <el-table-column prop="code"  label="代码" align="center" sortable/>
+      <el-table-column prop="code"  label="代码" align="center" sortable :formatter="codeFormatter"/>
       <el-table-column prop="name"  label="名称" align="center"/>
       <el-table-column prop="count" label="股票数量" align="center"/>
-      <el-table-column prop="cost"  label="总投入" align="center" />
-      <el-table-column label="成本" align="center" />
+      <el-table-column prop="cost"  label="总投入" align="center" :formatter="moneyFormatter"/>
+      <el-table-column label="成本" align="center" :formatter="costFormatter"/>
 
     </el-table>
 
@@ -35,7 +35,7 @@
           round type="primary" size="mini"
           style="margin-top: 2px; float: right"
           icon="el-icon-refresh"
-          @click=""
+          @click="queryRefresh"
       >
         刷新
       </el-button>
@@ -57,9 +57,33 @@
 </template>
 
 <script>
+import {constants} from '../api/constants'
+import {codeFormat, moneyFormat} from '../api/formatter'
+import {queryPosi,queryBalance} from '../api/orderApi'
+
 export default {
   name: "PosiList",
-
+  created() {
+    this.tableData = this.posiData;
+    this.balance = this.balanceData;
+  },
+  computed:{
+    posiData() {
+      return this.$store.state.posiData;
+    },
+    balanceData() {
+      return moneyFormat(this.$store.state.balance);
+    }
+  },
+  watch: {
+    posiData: function (val) {
+      this.tableData = val;
+      this.dataTotalCount = val.length;
+    },
+    balanceData: function (val) {
+      this.balance = val;
+    }
+  },
   data(){
     return{
       tableData:[
@@ -79,15 +103,19 @@ export default {
   },
 
   methods: {
-    costFormatter(row, column) {
-      return (row.cost / constants.MULTI_FACTOR /
-          row.count).toFixed(2);
+    queryRefresh(){
+      queryPosi();
+      queryBalance();
     },
-
+    costFormatter(row, column) {
+      return (row.cost / constants.MULTI_FACTOR / row.count).toFixed(2);
+    },
     moneyFormatter(row, column) {
       return moneyFormat(row.cost);
     },
-
+    codeFormatter(row, column) {
+      return codeFormat(row.code);
+    },
     cellStyle({row, column, rowIndex, columnIndex}) {
       return "padding:2px";
     },
