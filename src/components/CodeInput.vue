@@ -19,29 +19,6 @@
 import {queryCodeName} from '../api/orderApi'
 
 export default {
-  // methods:{
-  //   /**
-  //    *
-  //    * @param queryString 输入框输入的值
-  //    * @param callback  回调函数
-  //    */
-  //   querySearchAsync(queryString, callback){
-  //     //  模拟值
-  //     let list = [
-  //       {code: '000001', name: '平安银行', value:'000001-平安银行'},
-  //       {code: '600000', name: '浦发银行', value:'600000-浦发银行'},
-  //     ];
-  //
-  //     // 通知自动提示框提示的内容
-  //     callback(list);
-  //   },
-  //
-  //   updateInput(item){
-  //     this.state = ('000000' + item.code).slice(-6);
-  //     this.$bus.emit('codeinput-selectd', item);
-  //   }
-  // }
-
   name: "CodeInput",
   data() {
     return {
@@ -80,7 +57,6 @@ export default {
       // this.state = item.code;  1
       //  1  --> 0000001 --> 000001
       this.state = ('000000' + item.code).slice(-6);
-
       this.$bus.emit("codeinput-selected",item);
     }
   }

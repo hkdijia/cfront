@@ -1,4 +1,4 @@
-<template xmlns:h3="http://www.w3.org/1999/html">
+<template>
   <div class="orderForm">
       <el-form label-width="80px">
         <!-- 股票信息自动提示框   -->
@@ -27,11 +27,9 @@
         <el-form-item label="价格">
           <el-input-number v-model="price"
                            controls-position="right"
+                           @change="handlePrice"
                            :step="0.01"
-                           :min="0.01"
-          >
-
-
+                           :min="0.01" >
           </el-input-number>
         </el-form-item>
 
@@ -53,7 +51,7 @@
         <el-form-item>
           <el-button :type=" direction === 0 ? 'danger' : 'success'"
                       style="float: right"
-          >
+                     @click="onOrder">
             {{direction === 0 ? '买入' : '卖出'}}
           </el-button>
         </el-form-item>
@@ -65,7 +63,10 @@
 </template>
 
 <script>
-  import CodeInput from "./CodeInput";
+  import CodeInput from './CodeInput'
+  import {sendOrder} from '../api/orderApi'
+  import {constants} from '../api/constants'
+  import * as moment from 'moment'
 
   export default {
     name: "OrderWidget",
@@ -83,11 +84,11 @@
     },
 
     created() {
-      this.$bus.on('codeinput-selectd', this.updateSelectedCode);
+      this.$bus.on('codeinput-selected', this.updateSelectedCode);
     },
 
     beforeDestroy() {
-      this.$bus.off('codeinput-selectd', this.updateSelectedCode);
+      this.$bus.off('codeinput-selected', this.updateSelectedCode);
     },
 
     methods:{
@@ -96,7 +97,47 @@
         this.name = item.name;
         this.price = undefined;
         this.volume = undefined;
-      }
+      },
+
+      handlePrice() {
+        if (this.direction === constants.SELL) {
+          let posiArr = this.$store.state.posiData;
+          for (let i = 0, leng = posiArr.length; i < len; i++) {
+            if (posiArr[i].code == this.code) {
+              this.affordCount = posiArr[i].count;
+            }
+          }
+        } else {
+          //总资金/委托价格 向下取整
+          this.affordCount = parseInt(
+              (this.$store.state.balance / constants.MULTI_FACTOR)
+              / this.price
+          );
+        }
+      },
+
+      handleOrderRes(code, msg, data) {
+        if (code === 0) {
+          this.$message.success("委托送往交易所");
+        } else {
+          this.$message.error("委托失败:" + msg);
+        }
+      },
+
+      onOrder() {
+        sendOrder({
+              uid: sessionStorage.getItem("uid"),
+              type: constants.NEW_ORDER,
+              timestamp: moment.now(),
+              code: this.code,
+              direction: this.direction,
+              price: this.price * constants.MULTI_FACTOR,
+              volume: this.volume,
+              ordertype: constants.LIMIT
+            },
+            this.handleOrderRes
+        )
+      },
     },
 
     // 父子组件通信
